@@ -1,23 +1,12 @@
-# build image
+FROM golang:1.27.3-alpine AS build
 
-FROM golang:alpine AS build
+WORKDIR /src
+COPY . .
+RUN mkdir /out && CGO_ENABLED=0 go build -mod=vendor -trimpath -ldflags="-s -w" -o /out/ipify-api .
 
-WORKDIR /go/src/github.com/rdegges/ipify-api
-COPY . /go/src/github.com/rdegges/ipify-api
-RUN go build
+FROM scratch
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["/go/src/github.com/rdegges/ipify-api/ipify-api"]
-
-# live image
-
-FROM build AS live
+COPY --from=build /out/ipify-api /ipify-api
+USER 65532:65532
 EXPOSE 3000/tcp
-
-RUN apk upgrade \
-   && apk add --update dumb-init \
-   && rm /var/cache/apk/*
-
-COPY --from=build /go/src/github.com/rdegges/ipify-api/ipify-api /go/bin/
-
-CMD ["/go/bin/ipify-api"]
+ENTRYPOINT ["/ipify-api"]

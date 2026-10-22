@@ -59,15 +59,14 @@ your own copy of ipify onto a non-Heroku host.
 
 ## Building ipify
 
-To develop and build ipify, you'll need to have the Go programming language
-setup on your computer. If you don't, you can read more about it here:
-https://golang.org/
+To develop and build ipify, install a current Go release from:
+https://go.dev/dl/
 
-Once you have Go installed, you'll need to clone this project into your
-computer's GOPATH. For me, this means I'll typically do something like:
+Go Modules are enabled, so the project can be cloned anywhere:
 
 ```bash
-$ git clone https://github.com/rdegges/ipify-api.git ~/go/src/github.com/rdegges/ipify-api
+$ git clone https://github.com/rdegges/ipify-api.git
+$ cd ipify-api
 ```
 
 To build the project, change to the project directory and run:
@@ -76,8 +75,84 @@ To build the project, change to the project directory and run:
 $ go build
 ```
 
-This will create the `ipify-api` binary in the current directory that you can
-use for testing.
+This will create the `ipify-api` binary in the current directory.
+
+When deploying behind a reverse proxy, configure it to overwrite the
+`X-Forwarded-For` header. The API uses its first address when valid and falls
+back to the TCP peer address otherwise.
+
+
+## Running with Docker
+
+### Use the published image
+
+Start the published `badsmoke/ipify-api` image on port 3000:
+
+```bash
+docker run --rm -p 3000:3000 badsmoke/ipify-api
+```
+
+The API is then available at `http://localhost:3000`. For example:
+
+```bash
+curl "http://localhost:3000/?format=json"
+```
+
+Client IP logging is off by default. The logs contain client IP addresses, so
+enable it only when needed and apply an appropriate retention period. Set
+`LOG_IPS=true` to enable it:
+
+```bash
+docker run --rm -e LOG_IPS=true -p 3000:3000 badsmoke/ipify-api
+```
+
+To enable IP logging with Compose, save this as `docker-compose.yml` to run the
+published image. Remove the `environment` block to keep logging disabled:
+
+```yaml
+services:
+  ipify-api:
+    image: badsmoke/ipify-api
+    ports:
+      - "3000:3000"
+    environment:
+      LOG_IPS: "true"
+```
+
+Start it with Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+### Build the image yourself
+
+From the project directory, build and start the image:
+
+```bash
+docker build -t badsmoke/ipify-api .
+docker run --rm -p 3000:3000 badsmoke/ipify-api
+```
+
+To build from the project directory with Docker Compose, use this service
+configuration:
+
+```yaml
+services:
+  ipify-api:
+    image: badsmoke/ipify-api
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      LOG_IPS: "true"
+```
+
+Start it with `docker compose up --build`. Stop a Compose deployment with:
+
+```bash
+docker compose down
+```
 
 
 ## Deploying ipify

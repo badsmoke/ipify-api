@@ -8,28 +8,19 @@
 package main
 
 import (
-	"github.com/julienschmidt/httprouter"
-	"github.com/rdegges/ipify-api/api"
-	"github.com/rs/cors"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+
+	"github.com/julienschmidt/httprouter"
+	"github.com/rdegges/ipify-api/api"
+	"github.com/rs/cors"
 )
 
 // main launches our web server which runs indefinitely.
 func main() {
-
-	// Setup all routes.  We only service API requests, so this is basic.
-	router := httprouter.New()
-	router.GET("/", api.GetIP)
-
-	// Setup 404 / 405 handlers.
-	router.NotFound = http.HandlerFunc(api.NotFound)
-	router.MethodNotAllowed = http.HandlerFunc(api.MethodNotAllowed)
-
-	// Setup middlewares.  For this we're basically adding:
-	//	- Support for CORS to make JSONP work.
-	handler := cors.Default().Handler(router)
+	handler := newHandler()
 
 	// Start the server.
 	port := os.Getenv("PORT")
@@ -39,5 +30,23 @@ func main() {
 
 	log.Println("Starting HTTP server on port:", port)
 	log.Fatal(http.ListenAndServe(":"+port, handler))
+}
 
+func newHandler() http.Handler {
+	// Setup all routes.  We only service API requests, so this is basic.
+	router := httprouter.New()
+	router.GET("/", api.GetIP)
+	router.HandleMethodNotAllowed = true
+
+	// Setup 404 / 405 handlers.
+	router.NotFound = http.HandlerFunc(api.NotFound)
+	router.MethodNotAllowed = http.HandlerFunc(api.MethodNotAllowed)
+
+	// Setup middlewares.  For this we're basically adding:
+	//	- Support for CORS to make JSONP work.
+	handler := cors.Default().Handler(router)
+	if logIPs, _ := strconv.ParseBool(os.Getenv("LOG_IPS")); logIPs {
+		handler = api.LogClientIP(handler)
+	}
+	return handler
 }
