@@ -25,8 +25,7 @@ In general, there are a number of uses for public IP address information.
 ## What is ipify?
 
 ipify is a free API service anyone can use to get their public IP address. It is
-highly reliable (built on top of [Heroku](https://www.heroku.com/)) and fast.
-Typical response times (server side) are between 1ms and 10ms.
+designed to return the address quickly and reliably.
 
 ipify is also fully funded -- it's been running for years and isn't going
 anywhere. The people behind ipify cover all expenses and maintenance, so you
@@ -50,11 +49,7 @@ requests are encouraged.
 
 Finally, if you'd like to deploy your own instance of ipify, you can easily do
 so. Compiling this project will produce a single statically linked binary that
-is designed to be run on Heroku. With minor modification, ipify can be ran on
-any web hosting platform.
-
-Please contact [Randall](mailto:r@rdegges.com) if you need assistance deploying
-your own copy of ipify onto a non-Heroku host.
+can run on a Linux host or in Docker.
 
 
 ## Building ipify
@@ -153,15 +148,6 @@ Start it with `docker compose up --build`. Stop a Compose deployment with:
 ```bash
 docker compose down
 ```
-
-
-## Deploying ipify
-
-If you'd like to deploy your own version of ipify to Heroku, you can do so
-easily by clicking the button below. This will take you to Heroku and let you
-instantly provision your own copy of the ipify service.
-
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 
 ## Questions?
